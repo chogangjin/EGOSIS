@@ -22,6 +22,7 @@ namespace Alice
         void Start() override;
         void Update(float deltaTime) override;
         bool IsLoopActive() const;
+        void SetBreak(){ EnterPhase(Phase::Break); }
 
         ALICE_PROPERTY(std::string, m_weaponCombinedName, "Weapon(combined)");
         ALICE_PROPERTY(std::string, m_coreName, "W_Core");
