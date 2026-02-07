@@ -270,65 +270,6 @@ namespace Alice
             return;
         }
 
-        // ---- LookAt 토글(프리뷰 중에는 꺼둠) ----
-        if (!m_preview && input->GetKeyDown(KeyCode::L))
-        {
-            ToggleLookAt();
-        }
-
-        // ---- 1~5: 해당 카메라로 전환 후 프리뷰 고정 ----
-        if (input->GetKeyDown(KeyCode::Alpha1))
-        {
-            SetPreview(true);
-            TriggerCut(GetCameraNameFromCsv(csv, 0));
-            return;
-        }
-        if (input->GetKeyDown(KeyCode::Alpha2))
-        {
-            SetPreview(true);
-            TriggerCut(GetCameraNameFromCsv(csv, 1));
-            return;
-        }
-        // 3번 키: Linear Interpolation (부드러운 등속 이동)
-        if (input->GetKeyDown(KeyCode::Alpha3))
-        {
-            SetPreview(true);
-            // useCurve = false 전달
-            TriggerBlend(GetCameraNameFromCsv(csv, 2), cfg ? cfg->blendTimeKey3 : 0.6f, false);
-            return;
-        }
-        if (input->GetKeyDown(KeyCode::Alpha4))
-        {
-            SetPreview(true);
-            TriggerBlend(GetCameraNameFromCsv(csv, 3), cfg ? cfg->blendTimeKey4 : 0.6f);
-            if (cfg) TriggerShake(cfg->shakeAmplitudeKey4, cfg->shakeFrequencyKey4, cfg->shakeDurationKey4, cfg->shakeDecayKey4);
-            return;
-        }
-        if (input->GetKeyDown(KeyCode::Alpha5))
-        {
-            SetPreview(true);
-            TriggerBlend(GetCameraNameFromCsv(csv, 4), cfg ? cfg->blendTimeKey5 : 0.8f);
-
-            // 슬로우모션은 BlendComp 파라미터로 제어(기존 로직 그대로 활용)
-            if (cfg)
-            {
-                if (auto* blend = go.GetComponent<CameraBlendComponent>())
-                {
-                    blend->slowTriggerT = cfg->slowTriggerTKey5;
-                    blend->slowDuration = cfg->slowDurationKey5;
-                    blend->slowTimeScale = cfg->slowTimeScaleKey5;
-                }
-            }
-            return;
-        }
-        if (input->GetKeyDown(KeyCode::B))
-        {
-            SetPreview(true);
-            // 리플렉션으로 노출된 쉐이크 파라미터 사용
-            TriggerShake(Get_m_shakeAmplitude(), Get_m_shakeFrequency(), 
-                        Get_m_shakeDuration(), Get_m_shakeDecay());
-        }
-
         if (!m_preview)
         {
             UpdateOrbit();
