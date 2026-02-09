@@ -405,7 +405,12 @@ namespace Alice
 		bool SaveLightingSettingsForBuild(const std::filesystem::path& projectRoot) const;
 		void DrawMaterialAssetEditorWindow(World& world);
 		void DrawUICurveAssetEditorWindow();
+		void DrawPreloadAssetEditorWindow();
 		void HandleSceneLoadFlow(World& world, SceneManager* sceneManager, bool& isPlaying, EntityId& selectedEntity);
+
+	private:
+		// Build Game 등에서 플레이 상태를 제어하기 위한 포인터 (DrawEditorUI에서 갱신)
+		bool* m_isPlayingPtr = nullptr;
 
 		// UI
 		EntityId CreateAliceUIRoot(World& world, std::string_view name);
@@ -413,6 +418,8 @@ namespace Alice
 		EntityId CreateAliceUIText(World& world);
 		EntityId CreateAliceUIButton(World& world);
 		EntityId CreateAliceUIGauge(World& world);
+		EntityId CreateAliceUICheckBox(World& world);
+		EntityId CreateAliceUISlider(World& world);
 		EntityId CreateAliceUIWorldImage(World& world);
 
 		// Undo 시스템

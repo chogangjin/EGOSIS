@@ -6,6 +6,7 @@
 #include "Runtime/ECS/ComponentRegistry.h"  // RTTR 등록 코드 포함
 #include "Runtime/Resources/Serialization/JsonRttr.h"
 #include "Runtime/Resources/ResourceManager.h"
+#include "Runtime/Importing/FbxAsset.h"
 
 #include "Runtime/ECS/World.h"
 #include "Runtime/Scripting/Components/ScriptComponent.h"
@@ -49,6 +50,7 @@
 #include "Runtime/UI/UIImageComponent.h"
 #include "Runtime/UI/UITextComponent.h"
 #include "Runtime/UI/UIButtonComponent.h"
+#include "Runtime/UI/UICheckboxComponent.h"
 #include "Runtime/UI/UIGaugeComponent.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -77,6 +79,7 @@ namespace Alice
 
             static World* g_DefaultWorld = nullptr;
             static ResourceManager* g_DefaultResources = nullptr;
+            static ResourceManager* ResolvePrefabResourceManager();
 
             // 프로젝트 루트 경로를 구하는 헬퍼 함수
             static std::filesystem::path GetProjectRoot()
@@ -127,6 +130,29 @@ namespace Alice
                 }
 
                 return path;
+            }
+
+            static void ResolveSkinnedMeshPathsForLoad(SkinnedMeshComponent& skinned)
+            {
+                if (skinned.instanceAssetPath.empty() && !skinned.meshAssetPath.empty())
+                {
+                    const std::filesystem::path inferred = std::filesystem::path("Assets/Fbx") / (skinned.meshAssetPath + ".fbxasset");
+                    skinned.instanceAssetPath = inferred.generic_string();
+                }
+
+                if (!skinned.instanceAssetPath.empty())
+                {
+                    ResourceManager* resources = ResolvePrefabResourceManager();
+                    if (resources)
+                    {
+                        FbxInstanceAsset asset{};
+                        if (LoadFbxInstanceAssetAuto(*resources, skinned.instanceAssetPath, asset))
+                        {
+                            if (!asset.meshAssetPath.empty())
+                                skinned.meshAssetPath = asset.meshAssetPath;
+                        }
+                    }
+                }
             }
 
             static std::uint64_t ParseGuidOrZero(const JsonRttr::json& j)
@@ -545,6 +571,7 @@ namespace Alice
                     outEntity["UIGauge"] = JsonRttr::ToJsonObject(inst);
                 }
 
+            
                 // Point Light
                 if (const auto* point = world.GetComponent<PointLightComponent>(entity); point)
                 {
@@ -705,6 +732,8 @@ namespace Alice
                     rttr::instance instTmp = tmp;
                     if (!JsonRttr::FromJsonObject(instTmp, *itSM))
                         return false;
+
+                    ResolveSkinnedMeshPathsForLoad(tmp);
 
                     if (!tmp.meshAssetPath.empty())
                     {
@@ -895,6 +924,8 @@ namespace Alice
                     if (!JsonRttr::FromJsonObject(inst, *itUIWidget))
                         return false;
                 }
+
+
                 auto itUITransform = root.find("UITransform");
                 if (itUITransform != root.end() && itUITransform->is_object())
                 {
@@ -955,7 +986,6 @@ namespace Alice
                     if (!JsonRttr::FromJsonObject(inst, *itSL))
                         return false;
                 }
-
                 // Rect Light
                 auto itRL = root.find("RectLight");
                 if (itRL != root.end() && itRL->is_object())
